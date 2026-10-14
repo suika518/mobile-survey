@@ -212,7 +212,8 @@
 
       on_finish: function(data) {
         // 0～4の回答を1～5に変換
-        data.answer = data.response[`Q${number}`] + 1;
+        data.answer = Number(data.response[`Q${number}`]) + 1;
+
       }
     });
 
@@ -296,9 +297,11 @@
         // 保存内容
         const record = {
           participant_id: participantId,
+          group: "IU_reduction",
           answers: answers,
           total_rt_ms: Math.round(totalRt)
         };
+
 
         try {
           if (rows.length !== 12) {
@@ -373,23 +376,64 @@
     choices: "NO_KEYS",
     trial_duration: 4000
   });
-
-  // ===========================
+ 
   // フィードバック画面
-  // ===========================
-
   timeline.push({
     type: jsPsychHtmlButtonResponse,
 
     stimulus: `
-      <h2>分析結果</h2>
-      <p style="font-size:19px;line-height:2;">
-        あなたは不確実な状況に比較的耐えられる人です。
-      </p>
+      <div style="
+        max-width: 520px;
+        margin: 0 auto;
+        text-align: left;
+        line-height: 1.9;
+      ">
+
+        <h2 style="text-align: center;">
+          あなたへのフィードバック
+        </h2>
+
+        <div style="
+          background: #eef3fa;
+          padding: 22px;
+          border-radius: 12px;
+          margin: 25px 0;
+        ">
+          <p style="
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 1.7;
+            margin: 0;
+          ">
+            あなたは、不確実な状況に比較的耐えられる傾向があると考えられます。
+          </p>
+        </div>
+
+        <p>
+          例えば、予想していなかった出来事が起こったときでも、
+          必要以上に動揺することなく、状況に応じて柔軟に対応できる傾向があります。
+        </p>
+
+        <p>
+          また、将来の見通しが十分に立たない場面でも、
+          すべてを事前に把握しようとするのではなく、
+          分からないことがある状態をある程度受け入れながら、
+          物事を進められると考えられます。
+        </p>
+
+        <p>
+          日常生活においても、予定どおりに物事が進まなかったり、
+          十分な情報が得られなかったりした場合に、
+          その状況を過度に否定的に捉えることなく、
+          自分なりに対処する傾向があると考えられます。
+        </p>
+
+      </div>
     `,
 
     choices: ["閉じる"]
   });
+
 
   // ===========================
   // 終了画面
@@ -400,8 +444,6 @@
 
     stimulus: `
       <h2>終了しました</h2>
-      <p>ご協力ありがとうございました。</p>
-      <p>このページを閉じてください。</p>
     `,
 
     choices: "NO_KEYS"
