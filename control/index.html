@@ -300,9 +300,11 @@
         // 保存内容
         const record = {
           participant_id: participantId,
+          group: "control",
           answers: answers,
           total_rt_ms: Math.round(totalRt)
         };
+
 
         try {
           if (rows.length !== 12) {
