@@ -1,0 +1,401 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>心理学実験</title>
+
+  <script src="https://unpkg.com/jspsych@8.2.2/dist/index.browser.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/jspsych@8.2.2/css/jspsych.css">
+
+  <script src="https://unpkg.com/@jspsych/plugin-survey-likert@2.2.0/dist/index.browser.js"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.1.0/dist/index.browser.js"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.1.0/dist/index.browser.js"></script>
+
+  <style>
+    body {
+      background-color: #f7f9fc;
+      font-family: sans-serif;
+    }
+
+    .jspsych-content {
+      max-width: 520px;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .question-label {
+      font-size: 15px;
+      color: #4776c7;
+      margin-bottom: 20px;
+    }
+
+    .jspsych-survey-likert-statement {
+      font-size: 19px;
+      line-height: 1.8;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    .jspsych-btn {
+      background: #4776c7;
+      color: white;
+      border-radius: 8px;
+      padding: 13px 28px;
+      font-size: 16px;
+      border: none;
+      min-height: 48px;
+    }
+
+    .loader {
+      width: 45px;
+      height: 45px;
+      border: 5px solid #ddd;
+      border-top: 5px solid #4776c7;
+      border-radius: 50%;
+      margin: 30px auto;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+      .jspsych-content {
+        width: 100%;
+        padding: 15px;
+      }
+
+      .jspsych-survey-likert-statement {
+        font-size: 17px;
+      }
+    }
+  
+/* 5件法を縦並びにする */
+.jspsych-survey-likert-opts {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  width: 100% !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+/* 選択肢の枠 */
+.jspsych-survey-likert-opts li {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 52px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  background-color: white;
+  border: 1px solid #d5dce8;
+  border-radius: 10px;
+}
+
+/* 選択肢の文字 */
+.jspsych-survey-likert-opts li label {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* ラジオボタン */
+.jspsych-survey-likert-opts li input[type="radio"] {
+  position: static !important;
+  opacity: 1 !important;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: #4776c7;
+}
+
+/* 選択肢のラベル位置 */
+.jspsych-survey-likert-opts li label span {
+  position: static !important;
+  transform: none !important;
+  width: auto !important;
+  display: inline !important;
+}
+</style>
+</head>
+
+<body></body>
+
+<script>
+  // ===========================
+  // 質問項目（12項目）
+  // ===========================
+
+  
+  // 統制群用 SIUS12項目
+  const questionTexts = [
+    "おもいがけないことが起こると，とても動揺する",
+    "必要な全ての情報を手にしていないと，イライラする",
+    "驚くことを避けるために，常に先を見通しておくべきだ",
+    "最善の計画を立てていても，ささいな予測していない出来事によって，すべて台無しになる",
+    "常に，将来自分に何が待ち受けているかを知っていたい",
+    "驚かされることに耐えられない",
+    "私は全てのことを前もって準備しておくべきである",
+    "不確かさによって，充実した人生を送ることができない",
+    "いざ行動しなくてはならないときに，不確かさのせいで動けなくなってしまう",
+    "自分が不確かなとき，ものごとがうまくできなくなる",
+    "少しでも疑いがあると，行動をやめてしまう",
+    "私はあらゆる不確かな状況を避けなければならない"
+  ];
+
+
+  // 5件法の選択肢
+  const scale = [
+    "1．全く当てはまらない",
+    "2．あまり当てはまらない",
+    "3．どちらともいえない",
+    "4．やや当てはまる",
+    "5．非常に当てはまる"
+  ];
+
+  // jsPsychの初期化
+  const jsPsych = initJsPsych();
+
+  const timeline = [];
+  // Supabaseの接続情報
+  const SUPABASE_URL =
+    "https://vfvkvuvvnidkilzyozjm.supabase.co";
+
+  const SUPABASE_KEY =
+  "sb_publishable_qlZytr6C_6SWKaQd8wV3Zw_EAVhurxX";
+
+  // URLから参加者IDを取得
+  const params = new URLSearchParams(
+    window.location.search
+  );
+
+  const participantId = params.get("id");
+
+
+  // ===========================
+  // 質問紙（1画面1項目）
+  // ===========================
+
+  questionTexts.forEach((text, index) => {
+
+    const number = index + 1;
+
+    timeline.push({
+      type: jsPsychSurveyLikert,
+
+      preamble: `
+        <div class="question-label">
+          質問 ${number} / 12
+        </div>
+      `,
+
+      questions: [{
+        prompt: text,
+        name: `Q${number}`,
+        labels: scale,
+        required: true
+      }],
+
+      button_label:
+        index === 11 ? "回答を送信" : "次へ",
+
+      data: {
+        task: "questionnaire",
+        question_number: number
+      },
+
+      on_finish: function(data) {
+        // 0～4の回答を1～5に変換
+        data.answer = Number(data.response[`Q${number}`]) + 1;
+
+      }
+    });
+
+  });
+
+  // ===========================
+  // ローディング画面（4秒）
+  // ===========================
+  // Supabaseへの回答保存
+  // ===========================
+
+  timeline.push({
+    type: jsPsychHtmlKeyboardResponse,
+
+    stimulus: `
+      <h2>回答を送信しています</h2>
+      <div class="loader"></div>
+      <p id="save-status">
+        しばらくお待ちください。
+      </p>
+      <button id="retry-save"
+        class="jspsych-btn"
+        style="display:none">
+        再送信
+      </button>
+    `,
+
+    choices: "NO_KEYS",
+
+    // 保存が完了するまで自動で進まない
+    trial_duration: null,
+
+    on_load: function() {
+
+      const status = document.getElementById(
+        "save-status"
+      );
+
+      const retryButton = document.getElementById(
+        "retry-save"
+      );
+
+      // 二重送信を防止
+      let saving = false;
+      let saved = false;
+
+      async function saveData() {
+
+        if (saving || saved) return;
+
+        if (!participantId) {
+          status.textContent =
+            "参加者IDがありません。正しいURLからアクセスしてください。";
+          return;
+        }
+
+        saving = true;
+        retryButton.style.display = "none";
+        status.textContent =
+          "回答を送信しています...";
+
+        // 12項目の回答データを取得
+        const rows = jsPsych.data.get()
+          .filter({ task: "questionnaire" })
+          .values();
+
+        const answers = {};
+        let totalRt = 0;
+
+        rows.forEach(row => {
+          const number = row.question_number;
+
+          answers[`Q${number}`] = {
+            answer: row.answer,
+            rt_ms: Math.round(row.rt)
+          };
+
+          totalRt += row.rt;
+        });
+
+        // 保存内容
+        const record = {
+          participant_id: participantId,
+          answers: answers,
+          total_rt_ms: Math.round(totalRt)
+        };
+
+        try {
+          if (rows.length !== 12) {
+            throw new Error(
+              "回答項目数が12ではありません"
+            );
+          }
+
+          const response = await fetch(
+            SUPABASE_URL +
+              "/rest/v1/survey_responses",
+            {
+              method: "POST",
+              headers: {
+                "apikey": SUPABASE_KEY,
+                "Content-Type": "application/json",
+                "Prefer": "return=minimal"
+              },
+              body: JSON.stringify(record)
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+          }
+
+          saved = true;
+
+          // 保存成功後、次の画面へ
+          jsPsych.finishTrial({
+            save_success: true
+          });
+
+        } catch (error) {
+
+          console.error(
+            "Supabase保存エラー:", error
+          );
+
+          status.textContent =
+            "送信できませんでした。通信環境を確認し、再送信してください。";
+
+          retryButton.style.display =
+            "inline-block";
+
+        } finally {
+          saving = false;
+        }
+      }
+
+      retryButton.addEventListener(
+        "click", saveData
+      );
+
+      saveData();
+    }
+  });
+
+  // ===========================
+
+  timeline.push({
+    type: jsPsychHtmlKeyboardResponse,
+
+    stimulus: `
+      <h2>回答を確認しています</h2>
+      <div class="loader"></div>
+      <p>回答内容を処理しています...</p>
+      <p>しばらくお待ちください。</p>
+    `,
+
+    choices: "NO_KEYS",
+    trial_duration: 4000
+  });
+ 
+
+
+  // ===========================
+  // 終了画面
+  // ===========================
+
+  timeline.push({
+    type: jsPsychHtmlKeyboardResponse,
+
+    stimulus: `
+      <h2>終了しました</h2>
+    `,
+
+    choices: "NO_KEYS"
+  });
+
+  // 実験開始
+  jsPsych.run(timeline);
+
+</script>
+</html>
