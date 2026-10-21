@@ -175,8 +175,117 @@
     window.location.search
   );
 
-  const participantId = params.get("id");
+  let participantId = "";
 
+
+  // ===========================
+  // 実験ID入力画面
+  // ===========================
+
+  timeline.push({
+    type: jsPsychHtmlKeyboardResponse,
+
+    stimulus: `
+      <div style="
+        max-width: 420px;
+        margin: 0 auto;
+        text-align: left;
+        line-height: 1.8;
+      ">
+        <h2 style="text-align: center;">
+          実験IDの入力
+        </h2>
+
+        <p>
+          これから質問紙への回答を開始します。
+        </p>
+
+        <p>
+          事前にお伝えした実験IDを
+          入力してください。
+        </p>
+
+        <label for="experiment-id">
+          <strong>実験ID</strong>
+        </label>
+
+        <input
+          type="text"
+          id="experiment-id"
+          placeholder="例：P001"
+          autocomplete="off"
+          maxlength="20"
+          style="
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            font-size: 18px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+          "
+        >
+
+        <p id="id-error"
+          style="color: #c62828;">
+        </p>
+
+        <button
+          id="start-button"
+          class="jspsych-btn"
+          style="width: 100%;">
+          次へ
+        </button>
+      </div>
+    `,
+
+    choices: "NO_KEYS",
+
+    on_load: function() {
+
+      const input = document.getElementById(
+        "experiment-id"
+      );
+
+      const button = document.getElementById(
+        "start-button"
+      );
+
+      const error = document.getElementById(
+        "id-error"
+      );
+
+      function startSurvey() {
+
+        const id = input.value.trim().toUpperCase();
+
+        // 半角英数字・ハイフン・アンダーバー
+        if (!/^[A-Z0-9_-]{3,20}$/.test(id)) {
+          error.textContent =
+            "実験IDを半角英数字で正しく入力してください。";
+          return;
+        }
+
+        participantId = id;
+
+        jsPsych.finishTrial({
+          task: "id_input"
+        });
+      }
+
+      button.addEventListener(
+        "click", startSurvey
+      );
+
+      input.addEventListener(
+        "keydown", function(event) {
+          if (event.key === "Enter") {
+            startSurvey();
+          }
+        }
+      );
+    }
+  });
 
   // ===========================
   // 質問紙（1画面1項目）
